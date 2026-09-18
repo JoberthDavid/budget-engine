@@ -1,0 +1,18 @@
+{
+  "calculation_id": "calculation-002",
+  "budget": null,
+  "issues": [
+    {
+      "code": "MONETARY_VALUE_NOT_FOUND",
+      "severity": "CRITICAL",
+      "entity": "Input",
+      "entity_id": "input-001",
+      "message": "Valor monetário não encontrado para a data-base 2026-07."
+    }
+  ],
+  "calculation_metadata": {
+    "engine": "composition-engine",
+    "engine_version": "1.0.0",
+    "calculated_at": "2026-09-17T20:00:00Z"
+  }
+}

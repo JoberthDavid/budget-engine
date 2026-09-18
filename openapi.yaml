@@ -1,0 +1,289 @@
+openapi: 3.1.0
+info:
+  title: Budget API
+  version: 1.0.0
+  description: Contrato inicial do cálculo oficial de orçamento referencial.
+paths:
+  /budgets/calculate:
+    post:
+      summary: Calcula oficialmente um orçamento
+      operationId: calculateBudget
+      description: >
+        Valida, resolve snapshots e overrides, calcula composições via
+        composition-engine e consolida o resultado do Budget. Não persiste
+        nem finaliza o orçamento.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BudgetCalculationRequest'
+      responses:
+        '200':
+          description: Request processado; problemas de validação são retornados em issues.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BudgetCalculationResponse'
+        '400':
+          description: Contrato HTTP inválido.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HttpError'
+        '500':
+          description: Erro inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HttpError'
+components:
+  schemas:
+    BudgetCalculationRequest:
+      type: object
+      required: [project_id, type_system, monetary_base_date, services]
+      additionalProperties: false
+      properties:
+        project_id:
+          type: string
+          minLength: 1
+        budget_id:
+          type: string
+          minLength: 1
+        type_system:
+          type: string
+          enum: [SICRO, SINAPI]
+        monetary_base_date:
+          type: string
+          pattern: '^\d{4}-(0[1-9]|1[0-2])$'
+        services:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ServiceItemInput'
+        overrides:
+          $ref: '#/components/schemas/BudgetOverrides'
+
+    ServiceItemInput:
+      type: object
+      required: [id, code, description, unit, quantity, compositions]
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          minLength: 1
+        code:
+          type: string
+          minLength: 1
+        description:
+          type: string
+          minLength: 1
+        unit:
+          type: string
+          minLength: 1
+        quantity:
+          type: number
+          minimum: 0
+        compositions:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/CompositionItemInput'
+
+    CompositionItemInput:
+      type: object
+      required: [composition_id, reference_base_date, factor]
+      additionalProperties: false
+      properties:
+        composition_id:
+          type: string
+          minLength: 1
+        reference_base_date:
+          type: string
+          pattern: '^\d{4}-(0[1-9]|1[0-2])$'
+        factor:
+          type: number
+          exclusiveMinimum: 0
+
+    BudgetOverrides:
+      type: object
+      additionalProperties: false
+      properties:
+        compositions:
+          type: array
+          items:
+            $ref: '#/components/schemas/CompositionOverride'
+        inputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/InputOverride'
+        monetary_values:
+          type: array
+          items:
+            $ref: '#/components/schemas/MonetaryValueOverride'
+
+    CompositionOverride:
+      type: object
+      required: [composition_snapshot_id]
+      additionalProperties: false
+      properties:
+        composition_snapshot_id:
+          type: string
+          minLength: 1
+        production:
+          type: number
+          exclusiveMinimum: 0
+        inputs:
+          type: array
+          items:
+            type: object
+
+    InputOverride:
+      type: object
+      required: [input_snapshot_id]
+      additionalProperties: false
+      properties:
+        input_snapshot_id:
+          type: string
+          minLength: 1
+        code:
+          type: string
+        description:
+          type: string
+        unit:
+          type: string
+        quantity:
+          type: number
+          minimum: 0
+
+    MonetaryValueOverride:
+      type: object
+      required: [input_snapshot_id, value]
+      additionalProperties: false
+      properties:
+        input_snapshot_id:
+          type: string
+          minLength: 1
+        value:
+          type: number
+
+    BudgetCalculationResponse:
+      type: object
+      required: [calculation_id, issues, calculation_metadata]
+      additionalProperties: false
+      properties:
+        calculation_id:
+          type: string
+          minLength: 1
+        budget:
+          $ref: '#/components/schemas/CalculatedBudget'
+        issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationIssue'
+        calculation_metadata:
+          $ref: '#/components/schemas/CalculationMetadata'
+
+    CalculatedBudget:
+      type: object
+      required: [id, project_id, type_system, monetary_base_date, total_cost, services]
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        project_id:
+          type: string
+        type_system:
+          type: string
+        monetary_base_date:
+          type: string
+        total_cost:
+          type: number
+        services:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceItemResult'
+
+    ServiceItemResult:
+      type: object
+      required: [id, code, quantity, unit_cost, total_cost, compositions]
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+        description:
+          type: string
+        unit:
+          type: string
+        quantity:
+          type: number
+        unit_cost:
+          type: number
+        total_cost:
+          type: number
+        compositions:
+          type: array
+          items:
+            $ref: '#/components/schemas/CompositionResult'
+
+    CompositionResult:
+      type: object
+      required: [composition_id, reference_base_date, factor, unit_cost, total_cost]
+      additionalProperties: false
+      properties:
+        composition_id:
+          type: string
+        reference_base_date:
+          type: string
+        factor:
+          type: number
+        unit_cost:
+          type: number
+        total_cost:
+          type: number
+
+    ValidationIssue:
+      type: object
+      required: [code, severity, entity, entity_id, message]
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+        severity:
+          type: string
+          enum: [INFO, WARNING, CRITICAL]
+        entity:
+          type: string
+        entity_id:
+          type: string
+        message:
+          type: string
+
+    CalculationMetadata:
+      type: object
+      required: [engine, engine_version, calculated_at]
+      additionalProperties: false
+      properties:
+        engine:
+          type: string
+        engine_version:
+          type: string
+        calculated_at:
+          type: string
+          format: date-time
+
+    HttpError:
+      type: object
+      required: [code, message]
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
