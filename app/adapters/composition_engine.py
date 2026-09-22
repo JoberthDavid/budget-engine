@@ -7,7 +7,7 @@ class CompositionEngineAdapter(CompositionCalculatorPort):
     """Adaptador para a API Python do composition-engine.
 
     A integração concreta será fechada após definir o ponto público de entrada
-    que o budget-engine usará. Nenhuma dependência Flask é introduzida no engine.
+    que o budget-engine usará. Nenhuma dependência do framework HTTP é introduzida no engine.
     """
 
     def calculate(self, **kwargs) -> CalculatedComposition:

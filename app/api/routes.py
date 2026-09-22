@@ -2,19 +2,21 @@ from __future__ import annotations
 
 from decimal import Decimal, InvalidOperation
 
-from flask import Blueprint, jsonify, request
+from fastapi import APIRouter, Request
+from fastapi.responses import JSONResponse
 
 from app.application.calculate_budget import CalculateBudget
-from app.domain.models import BudgetCalculationRequest, CompositionItemInput, ServiceItemInput
+from app.domain.models import (
+    BudgetCalculationRequest,
+    CompositionItemInput,
+    ServiceItemInput,
+)
 
 
-bp = Blueprint("budgets", __name__)
-_calculate_budget: CalculateBudget | None = None
-
-
-def configure(calculate_budget: CalculateBudget) -> None:
-    global _calculate_budget
-    _calculate_budget = calculate_budget
+router = APIRouter(
+    prefix="/budgets",
+    tags=["budgets"],
+)
 
 
 def _decimal(value, field: str) -> Decimal:
@@ -99,24 +101,36 @@ def _serialize_budget(budget):
     }
 
 
-@bp.post("/budgets/calculate")
-def calculate():
-    if _calculate_budget is None:
-        return jsonify({"code": "APPLICATION_NOT_CONFIGURED", "message": "Aplicação não configurada."}), 500
+@router.post("/calculate")
+async def calculate(request: Request):
+    calculate_budget: CalculateBudget = request.app.state.calculate_budget
 
-    payload = request.get_json(silent=True)
+    payload = None
+    try:
+        payload = await request.json()
+    except Exception:
+        payload = None
+
     if not isinstance(payload, dict):
-        return jsonify({"code": "INVALID_JSON", "message": "O corpo deve ser um objeto JSON."}), 400
-
+        return JSONResponse(
+            {"code": "INVALID_JSON", "message": "O corpo deve ser um objeto JSON."},
+            status_code=400,
+        )
     try:
         calculation_request = _parse_request(payload)
     except (KeyError, TypeError, ValueError) as exc:
-        return jsonify({"code": "INVALID_REQUEST", "message": str(exc)}), 400
+        return JSONResponse(
+            {"code": "INVALID_REQUEST", "message": str(exc)},
+            status_code=400,
+        )
 
     try:
-        calculation_id, budget, issues = _calculate_budget.execute(calculation_request)
+        calculation_id, budget, issues = calculate_budget.execute(calculation_request)
     except NotImplementedError as exc:
-        return jsonify({"code": "ENGINE_NOT_CONFIGURED", "message": str(exc)}), 501
+        return JSONResponse(
+            {"code": "ENGINE_NOT_CONFIGURED", "message": str(exc)},
+            status_code=501,
+        )
 
     response = {
         "calculation_id": calculation_id,
@@ -128,4 +142,4 @@ def calculate():
             "calculated_at": None,
         },
     }
-    return jsonify(response), 200
+    return JSONResponse(response, status_code=200)

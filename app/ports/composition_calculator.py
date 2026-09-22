@@ -12,7 +12,7 @@ class CalculatedComposition:
 
 
 class CompositionCalculatorPort:
-    """Porta para o composition-engine. O domínio não conhece Flask nem HTTP."""
+    """Porta para o composition-engine. O domínio não conhece o framework nem HTTP."""
 
     def calculate(
         self,
