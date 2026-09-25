@@ -41,7 +41,7 @@ components:
   schemas:
     BudgetCalculationRequest:
       type: object
-      required: [project_id, type_system, monetary_base_date, services]
+      required: [project_id, methodology, type_system, monetary_base_date, services]
       additionalProperties: false
       properties:
         project_id:
@@ -50,9 +50,12 @@ components:
         budget_id:
           type: string
           minLength: 1
+        methodology:
+          type: string
+          enum: [SC, SN]
         type_system:
           type: string
-          enum: [SICRO, SINAPI]
+          enum: [ON, NA, DS]
         monetary_base_date:
           type: string
           pattern: '^\d{4}-(0[1-9]|1[0-2])$'

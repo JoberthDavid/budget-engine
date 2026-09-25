@@ -18,10 +18,12 @@ class CompositionCalculatorPort:
         self,
         *,
         project_id: str,
+        methodology: str,
         type_system: str,
         monetary_base_date: str,
         composition_id: str,
         reference_base_date: str,
         overrides: dict,
     ) -> CalculatedComposition:
+        
         raise NotImplementedError

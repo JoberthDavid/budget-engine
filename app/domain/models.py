@@ -25,6 +25,7 @@ class ServiceItemInput:
 @dataclass(frozen=True)
 class BudgetCalculationRequest:
     project_id: str
+    methodology: str
     type_system: str
     monetary_base_date: str
     services: tuple[ServiceItemInput, ...]
@@ -66,6 +67,7 @@ class ServiceItemResult:
 class CalculatedBudget:
     id: str
     project_id: str
+    methodology: str
     type_system: str
     monetary_base_date: str
     total_cost: Decimal

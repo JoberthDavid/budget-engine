@@ -1,7 +1,8 @@
 {
   "project_id": "project-001",
   "budget_id": "budget-001",
-  "type_system": "SICRO",
+  "methodology": "SC",
+  "type_system": "ON",
   "monetary_base_date": "2026-07",
   "services": [
     {
