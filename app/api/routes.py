@@ -61,6 +61,7 @@ def _to_response(
         budget_response = CalculatedBudgetResponse(
             id=budget.id,
             project_id=budget.project_id,
+            source_file_uf=budget.source_file_uf,
             methodology=budget.methodology,
             type_system=budget.type_system,
             monetary_base_date=budget.monetary_base_date,

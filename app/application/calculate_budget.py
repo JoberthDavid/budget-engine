@@ -31,9 +31,8 @@ class CalculateBudget:
 
             for item in service.compositions:
                 try:
-
                     calculated = self._composition_calculator.calculate(
-                        project_id=request.project_id,
+                        source_file_uf=request.source_file_uf,
                         methodology=request.methodology,
                         type_system=request.type_system,
                         monetary_base_date=request.monetary_base_date,
@@ -106,6 +105,7 @@ class CalculateBudget:
         budget = CalculatedBudget(
             id=request.budget_id or str(uuid4()),
             project_id=request.project_id,
+            source_file_uf=request.source_file_uf,
             methodology=request.methodology,
             type_system=request.type_system,
             monetary_base_date=request.monetary_base_date,

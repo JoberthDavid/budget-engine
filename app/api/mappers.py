@@ -35,12 +35,12 @@ def map_service_item(
         ),
     )
 
-
 def map_budget_calculation_request(
     request: BudgetCalculationRequestSchema,
 ) -> BudgetCalculationRequest:
     return BudgetCalculationRequest(
         project_id=request.project_id,
+        source_file_uf=request.source_file_uf,
         methodology=request.methodology,
         type_system=request.type_system,
         monetary_base_date=request.monetary_base_date,

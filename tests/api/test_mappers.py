@@ -14,9 +14,10 @@ def make_request_schema() -> BudgetCalculationRequestSchema:
         {
             "project_id": "PROJ-001",
             "budget_id": "ORC-001",
+            "source_file_uf": "DF",
             "methodology": "SC",
             "type_system": "ON",
-            "monetary_base_date": "2026-01",
+            "monetary_base_date": "2026-01-01",
             "services": [
                 {
                     "id": "SERV-001",
@@ -27,7 +28,7 @@ def make_request_schema() -> BudgetCalculationRequestSchema:
                     "compositions": [
                         {
                             "composition_id": "4011209",
-                            "reference_base_date": "2026-01",
+                            "reference_base_date": "2026-01-01",
                             "factor": "1.50",
                         }
                     ],
@@ -97,7 +98,7 @@ def test_mapper_preserves_request_values():
     assert request.budget_id == "ORC-001"
     assert request.methodology == "SC"
     assert request.type_system == "ON"
-    assert request.monetary_base_date == "2026-01"
+    assert request.monetary_base_date == "2026-01-01"
 
     service = request.services[0]
 
@@ -109,7 +110,7 @@ def test_mapper_preserves_request_values():
     composition = service.compositions[0]
 
     assert composition.composition_id == "4011209"
-    assert composition.reference_base_date == "2026-01"
+    assert composition.reference_base_date == "2026-01-01"
 
 
 def test_mapper_copies_overrides_without_interpreting_them():
@@ -127,9 +128,10 @@ def test_mapper_preserves_minimal_request_defaults():
     schema = BudgetCalculationRequestSchema.model_validate(
         {
             "project_id": "PROJ-001",
+            "source_file_uf": "DF",
             "methodology": "SC",
             "type_system": "ON",
-            "monetary_base_date": "2026-01",
+            "monetary_base_date": "2026-01-01",
             "services": [],
         }
     )
@@ -141,7 +143,7 @@ def test_mapper_preserves_minimal_request_defaults():
     assert request.project_id == "PROJ-001"
     assert request.methodology == "SC"
     assert request.type_system == "ON"
-    assert request.monetary_base_date == "2026-01"
+    assert request.monetary_base_date == "2026-01-01"
 
     assert request.services == ()
     assert isinstance(request.services, tuple)
@@ -155,9 +157,10 @@ def test_mapper_creates_independent_overrides_for_minimal_request():
     schema = BudgetCalculationRequestSchema.model_validate(
         {
             "project_id": "PROJ-001",
+            "source_file_uf": "DF",
             "methodology": "SC",
             "type_system": "ON",
-            "monetary_base_date": "2026-01",
+            "monetary_base_date": "2026-01-01",
             "services": [],
         }
     )

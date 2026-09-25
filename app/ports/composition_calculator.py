@@ -13,17 +13,58 @@ class CalculatedComposition:
 
 class CompositionCalculatorPort:
     """Porta para o composition-engine. O domínio não conhece o framework nem HTTP."""
-
     def calculate(
         self,
         *,
-        project_id: str,
-        methodology: str,
+        source_file_uf: str,
         type_system: str,
         monetary_base_date: str,
         composition_id: str,
         reference_base_date: str,
         overrides: dict,
     ) -> CalculatedComposition:
-        
         raise NotImplementedError
+
+
+class CompositionProviderError(RuntimeError):
+    """Erro abstrato de um fornecedor de cálculo de composição."""
+
+
+class CompositionNotFoundError(CompositionProviderError):
+    pass
+
+
+class CompositionEngineAuthenticationError(
+    CompositionProviderError
+):
+    pass
+
+
+class CompositionProviderUnavailableError(
+    CompositionProviderError
+):
+    pass
+
+
+class CompositionProviderRequestError(
+    CompositionProviderError
+):
+    pass
+
+
+class CompositionEngineContractError(
+    CompositionProviderError
+):
+    pass
+
+
+class CompositionEngineConfigurationError(
+    CompositionProviderError
+):
+    pass
+
+
+class CompositionOverridesUnsupportedError(
+    CompositionProviderError
+):
+    pass

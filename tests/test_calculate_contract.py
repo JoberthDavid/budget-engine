@@ -55,9 +55,10 @@ def test_calculate_route_exists_before_engine_wiring():
         "/budgets/calculate",
         json={
             "project_id": "project-001",
+            "source_file_uf": "DF",
             "methodology": "SC",
             "type_system": "ON",
-            "monetary_base_date": "2026-07",
+            "monetary_base_date": "2026-07-01",
             "services": [
                 {
                     "id": "service-001",
@@ -68,7 +69,7 @@ def test_calculate_route_exists_before_engine_wiring():
                     "compositions": [
                         {
                             "composition_id": "composition-001",
-                            "reference_base_date": "2025-07",
+                            "reference_base_date": "2025-07-01",
                             "factor": "1",
                         }
                     ],
@@ -107,9 +108,10 @@ def test_calculate_maps_http_request_to_domain_request():
         "/budgets/calculate",
         json={
             "project_id": "project-001",
+            "source_file_uf": "DF",
             "methodology": "SC",
             "type_system": "ON",
-            "monetary_base_date": "2026-07",
+            "monetary_base_date": "2026-07-01",
             "services": [],
         },
     )
@@ -123,18 +125,20 @@ def test_calculate_maps_http_request_to_domain_request():
     assert calculation_request.project_id == "project-001"
     assert calculation_request.methodology == "SC"
     assert calculation_request.type_system == "ON"
-    assert calculation_request.monetary_base_date == "2026-07"
+    assert calculation_request.monetary_base_date == "2026-07-01"
     assert calculation_request.services == ()
     assert calculation_request.overrides == {}
+    assert calculation_request.source_file_uf == "DF"
 
 
 def test_calculate_serializes_complete_budget_response():
     budget = CalculatedBudget(
         id="budget-001",
         project_id="project-001",
+        source_file_uf="DF",
         methodology="SC",
         type_system="ON",
-        monetary_base_date="2026-07",
+        monetary_base_date="2026-07-01",
         total_cost=Decimal("123456.78"),
         services=(
             ServiceItemResult(
@@ -148,7 +152,7 @@ def test_calculate_serializes_complete_budget_response():
                 compositions=(
                     CompositionResult(
                         composition_id="composition-001",
-                        reference_base_date="2025-07",
+                        reference_base_date="2025-07-01",
                         factor=Decimal("1.0000"),
                         unit_cost=Decimal("1234.56"),
                         total_cost=Decimal("123456.00"),
@@ -176,9 +180,10 @@ def test_calculate_serializes_complete_budget_response():
         "/budgets/calculate",
         json={
             "project_id": "project-001",
+            "source_file_uf": "DF",
             "methodology": "SC",
             "type_system": "ON",
-            "monetary_base_date": "2026-07",
+            "monetary_base_date": "2026-07-01",
             "services": [],
         },
     )
@@ -193,7 +198,7 @@ def test_calculate_serializes_complete_budget_response():
     assert body["budget"]["project_id"] == "project-001"
     assert body["budget"]["methodology"] == "SC"
     assert body["budget"]["type_system"] == "ON"
-    assert body["budget"]["monetary_base_date"] == "2026-07"
+    assert body["budget"]["monetary_base_date"] == "2026-07-01"
     assert body["budget"]["total_cost"] == "123456.78"
 
     assert len(body["budget"]["services"]) == 1
@@ -213,7 +218,7 @@ def test_calculate_serializes_complete_budget_response():
     composition = service["compositions"][0]
 
     assert composition["composition_id"] == "composition-001"
-    assert composition["reference_base_date"] == "2025-07"
+    assert composition["reference_base_date"] == "2025-07-01"
     assert composition["factor"] == "1.0000"
     assert composition["unit_cost"] == "1234.56"
     assert composition["total_cost"] == "123456.00"
@@ -260,9 +265,10 @@ def test_calculate_serializes_validation_issues():
         "/budgets/calculate",
         json={
             "project_id": "project-001",
+            "source_file_uf": "DF",
             "methodology": "SC",
             "type_system": "ON",
-            "monetary_base_date": "2026-07",
+            "monetary_base_date": "2026-07-01",
             "services": [],
         },
     )
@@ -322,9 +328,10 @@ def test_critical_validation_issue_returns_http_200_with_null_budget():
         "/budgets/calculate",
         json={
             "project_id": "project-001",
+            "source_file_uf": "DF",
             "methodology": "SC",
             "type_system": "ON",
-            "monetary_base_date": "2026-07",
+            "monetary_base_date": "2026-07-01",
             "services": [],
         },
     )
@@ -343,9 +350,10 @@ def test_calculate_preserves_decimal_precision_in_response():
     budget = CalculatedBudget(
         id="budget-precision",
         project_id="project-001",
+        source_file_uf="DF",
         methodology="SC",
         type_system="ON",
-        monetary_base_date="2026-07",
+        monetary_base_date="2026-07-01",
         total_cost=Decimal("0.10"),
         services=(
             ServiceItemResult(
@@ -379,9 +387,10 @@ def test_calculate_preserves_decimal_precision_in_response():
         "/budgets/calculate",
         json={
             "project_id": "project-001",
+            "source_file_uf": "DF",
             "methodology": "SC",
             "type_system": "ON",
-            "monetary_base_date": "2026-07",
+            "monetary_base_date": "2026-07-01",
             "services": [],
         },
     )
@@ -422,9 +431,10 @@ def test_create_app_uses_injected_calculate_budget():
         "/budgets/calculate",
         json={
             "project_id": "project-001",
+            "source_file_uf": "DF",
             "methodology": "SC",
             "type_system": "ON",
-            "monetary_base_date": "2026-07",
+            "monetary_base_date": "2026-07-01",
             "services": [],
         },
     )
@@ -441,9 +451,10 @@ def test_calculate_rejects_invalid_methodology():
         "/budgets/calculate",
         json={
             "project_id": "project-001",
+            "source_file_uf": "DF",
             "methodology": "XX",
             "type_system": "ON",
-            "monetary_base_date": "2026-07",
+            "monetary_base_date": "2026-07-01",
             "services": [],
         },
     )
@@ -459,9 +470,10 @@ def test_calculate_rejects_invalid_type_system():
         "/budgets/calculate",
         json={
             "project_id": "project-001",
+            "source_file_uf": "DF",
             "methodology": "SC",
             "type_system": "XX",
-            "monetary_base_date": "2026-07",
+            "monetary_base_date": "2026-07-01",
             "services": [],
         },
     )

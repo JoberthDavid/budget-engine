@@ -25,13 +25,13 @@ class ServiceItemInput:
 @dataclass(frozen=True)
 class BudgetCalculationRequest:
     project_id: str
+    source_file_uf: str
     methodology: str
     type_system: str
     monetary_base_date: str
     services: tuple[ServiceItemInput, ...]
     budget_id: str | None = None
     overrides: dict[str, Any] = field(default_factory=dict)
-
 
 @dataclass(frozen=True)
 class ValidationIssue:
@@ -67,6 +67,7 @@ class ServiceItemResult:
 class CalculatedBudget:
     id: str
     project_id: str
+    source_file_uf: str
     methodology: str
     type_system: str
     monetary_base_date: str
