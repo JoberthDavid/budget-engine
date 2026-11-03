@@ -1,15 +1,25 @@
 from decimal import Decimal
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
-from fastapi.testclient import TestClient
-
-from app import create_app
+from rest_framework.test import APIClient
 from app.domain.models import (
     CalculatedBudget,
     CompositionResult,
     ServiceItemResult,
     ValidationIssue,
 )
+
+
+class _ApiClient:
+    def __init__(self, calculate_budget=None):
+        self.calculate_budget = calculate_budget
+
+    def post(self, path, *, json):
+        with patch(
+            "app.api.views.get_calculate_budget",
+            return_value=self.calculate_budget,
+        ):
+            return APIClient().post(path, json, format="json")
 
 
 def test_calculate_rejects_missing_required_fields():
@@ -21,11 +31,7 @@ def test_calculate_rejects_missing_required_fields():
         [],
     )
 
-    app = create_app(
-        calculate_budget=calculate_budget,
-    )
-
-    client = TestClient(app)
+    client = _ApiClient(calculate_budget)
 
     response = client.post(
         "/budgets/calculate",
@@ -45,11 +51,7 @@ def test_calculate_route_exists_before_engine_wiring():
         [],
     )
 
-    app = create_app(
-        calculate_budget=calculate_budget,
-    )
-
-    client = TestClient(app)
+    client = _ApiClient(calculate_budget)
 
     response = client.post(
         "/budgets/calculate",
@@ -98,11 +100,7 @@ def test_calculate_maps_http_request_to_domain_request():
         [],
     )
 
-    app = create_app(
-        calculate_budget=calculate_budget,
-    )
-
-    client = TestClient(app)
+    client = _ApiClient(calculate_budget)
 
     response = client.post(
         "/budgets/calculate",
@@ -170,11 +168,7 @@ def test_calculate_serializes_complete_budget_response():
         [],
     )
 
-    app = create_app(
-        calculate_budget=calculate_budget,
-    )
-
-    client = TestClient(app)
+    client = _ApiClient(calculate_budget)
 
     response = client.post(
         "/budgets/calculate",
@@ -255,11 +249,7 @@ def test_calculate_serializes_validation_issues():
         issues,
     )
 
-    app = create_app(
-        calculate_budget=calculate_budget,
-    )
-
-    client = TestClient(app)
+    client = _ApiClient(calculate_budget)
 
     response = client.post(
         "/budgets/calculate",
@@ -318,11 +308,7 @@ def test_critical_validation_issue_returns_http_200_with_null_budget():
         [issue],
     )
 
-    app = create_app(
-        calculate_budget=calculate_budget,
-    )
-
-    client = TestClient(app)
+    client = _ApiClient(calculate_budget)
 
     response = client.post(
         "/budgets/calculate",
@@ -377,11 +363,7 @@ def test_calculate_preserves_decimal_precision_in_response():
         [],
     )
 
-    app = create_app(
-        calculate_budget=calculate_budget,
-    )
-
-    client = TestClient(app)
+    client = _ApiClient(calculate_budget)
 
     response = client.post(
         "/budgets/calculate",
@@ -412,7 +394,7 @@ def test_calculate_preserves_decimal_precision_in_response():
     )
 
 
-def test_create_app_uses_injected_calculate_budget():
+def test_api_uses_injected_calculate_budget():
     calculate_budget = Mock()
 
     calculate_budget.execute.return_value = (
@@ -421,11 +403,7 @@ def test_create_app_uses_injected_calculate_budget():
         [],
     )
 
-    app = create_app(
-        calculate_budget=calculate_budget,
-    )
-
-    client = TestClient(app)
+    client = _ApiClient(calculate_budget)
 
     response = client.post(
         "/budgets/calculate",
@@ -445,7 +423,7 @@ def test_create_app_uses_injected_calculate_budget():
     calculate_budget.execute.assert_called_once()
 
 def test_calculate_rejects_invalid_methodology():
-    client = TestClient(create_app())
+    client = _ApiClient()
 
     response = client.post(
         "/budgets/calculate",
@@ -464,7 +442,7 @@ def test_calculate_rejects_invalid_methodology():
 
 
 def test_calculate_rejects_invalid_type_system():
-    client = TestClient(create_app())
+    client = _ApiClient()
 
     response = client.post(
         "/budgets/calculate",

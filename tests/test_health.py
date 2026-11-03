@@ -1,12 +1,8 @@
-from fastapi.testclient import TestClient
-
-from app import create_app
+from rest_framework.test import APIClient
 
 
 def test_health():
-    client = TestClient(create_app())
-
-    response = client.get("/health")
+    response = APIClient().get("/health")
 
     assert response.status_code == 200
     assert response.json() == {

@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from app.api.mappers import map_budget_calculation_request
-from app.api.schemas import BudgetCalculationRequestSchema
+from app.api.serializers import BudgetCalculationRequestSerializer
 from app.domain.models import (
     BudgetCalculationRequest,
     CompositionItemInput,
@@ -9,9 +9,9 @@ from app.domain.models import (
 )
 
 
-def make_request_schema() -> BudgetCalculationRequestSchema:
-    return BudgetCalculationRequestSchema.model_validate(
-        {
+def make_request_schema() -> dict:
+    serializer = BudgetCalculationRequestSerializer(
+        data={
             "project_id": "PROJ-001",
             "budget_id": "ORC-001",
             "source_file_uf": "DF",
@@ -39,6 +39,8 @@ def make_request_schema() -> BudgetCalculationRequestSchema:
             },
         }
     )
+    assert serializer.is_valid(), serializer.errors
+    return serializer.validated_data
 
 
 def test_mapper_returns_budget_calculation_request():
@@ -125,8 +127,8 @@ def test_mapper_copies_overrides_without_interpreting_them():
     assert request.overrides is not schema.overrides
 
 def test_mapper_preserves_minimal_request_defaults():
-    schema = BudgetCalculationRequestSchema.model_validate(
-        {
+    serializer = BudgetCalculationRequestSerializer(
+        data={
             "project_id": "PROJ-001",
             "source_file_uf": "DF",
             "methodology": "SC",
@@ -135,6 +137,8 @@ def test_mapper_preserves_minimal_request_defaults():
             "services": [],
         }
     )
+    assert serializer.is_valid(), serializer.errors
+    schema = serializer.validated_data
 
     request = map_budget_calculation_request(schema)
 
@@ -154,8 +158,8 @@ def test_mapper_preserves_minimal_request_defaults():
     assert isinstance(request.overrides, dict)
 
 def test_mapper_creates_independent_overrides_for_minimal_request():
-    schema = BudgetCalculationRequestSchema.model_validate(
-        {
+    serializer = BudgetCalculationRequestSerializer(
+        data={
             "project_id": "PROJ-001",
             "source_file_uf": "DF",
             "methodology": "SC",
@@ -164,6 +168,8 @@ def test_mapper_creates_independent_overrides_for_minimal_request():
             "services": [],
         }
     )
+    assert serializer.is_valid(), serializer.errors
+    schema = serializer.validated_data
 
     request = map_budget_calculation_request(schema)
 
