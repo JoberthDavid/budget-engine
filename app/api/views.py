@@ -1,13 +1,16 @@
 from functools import lru_cache
 
+from django.db.models import Prefetch
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from app.adapters.composition_engine import CompositionEngineAdapter
+from app.models import BDI, BDIQuota
 from app.api.mappers import map_budget_calculation_request
 from app.api.serializers import (
     BudgetCalculationRequestSerializer,
     BudgetCalculationResponseSerializer,
+    BDIResponseSerializer,
 )
 from app.application.calculate_budget import CalculateBudget
 
@@ -20,6 +23,17 @@ def get_calculate_budget() -> CalculateBudget:
 @api_view(["GET"])
 def health(request):
     return Response({"status": "ok"})
+
+
+@api_view(["GET"])
+def list_bdis(request):
+    bdis = (
+        BDI.objects
+        .select_related("method")
+        .prefetch_related(Prefetch("quotas", queryset=BDIQuota.objects.order_by("id")))
+        .order_by("id")
+    )
+    return Response(BDIResponseSerializer(bdis, many=True).data)
 
 
 @api_view(["POST"])

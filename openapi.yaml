@@ -20,6 +20,19 @@ paths:
                   status:
                     type: string
                     enum: [ok]
+  /bdi:
+    get:
+      summary: Lista as configurações de BDI
+      operationId: listBdis
+      responses:
+        '200':
+          description: Configurações de BDI cadastradas.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BDI'
   /budgets/calculate:
     post:
       summary: Calcula oficialmente um orçamento
@@ -55,6 +68,48 @@ paths:
                 $ref: '#/components/schemas/HttpError'
 components:
   schemas:
+    BDI:
+      type: object
+      required: [id, name, slug, method, quotas]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        method:
+          $ref: '#/components/schemas/BDIMethod'
+        quotas:
+          type: array
+          items:
+            $ref: '#/components/schemas/BDIQuota'
+
+    BDIMethod:
+      type: object
+      required: [id, method]
+      properties:
+        id:
+          type: integer
+        method:
+          type: string
+
+    BDIQuota:
+      type: object
+      required: [id, group, description, percentage, variable]
+      properties:
+        id:
+          type: integer
+        group:
+          type: string
+        description:
+          type: string
+        percentage:
+          type: string
+          pattern: '^\d+\.\d{6}$'
+        variable:
+          type: string
+
     BudgetCalculationRequest:
       type: object
       required: [project_id, source_file_uf, methodology, type_system, monetary_base_date, services]

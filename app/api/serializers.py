@@ -84,3 +84,24 @@ class BudgetCalculationResponseSerializer(serializers.Serializer):
     calculation_id = serializers.CharField()
     budget = CalculatedBudgetResponseSerializer(allow_null=True)
     issues = ValidationIssueResponseSerializer(many=True)
+
+
+class BDIMethodResponseSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    method = serializers.CharField()
+
+
+class BDIQuotaResponseSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    group = serializers.CharField()
+    description = serializers.CharField()
+    percentage = serializers.DecimalField(max_digits=12, decimal_places=6)
+    variable = serializers.CharField()
+
+
+class BDIResponseSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    slug = serializers.CharField()
+    method = BDIMethodResponseSerializer()
+    quotas = BDIQuotaResponseSerializer(many=True)
