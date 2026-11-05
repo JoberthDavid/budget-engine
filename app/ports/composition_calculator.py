@@ -13,10 +13,12 @@ class CalculatedComposition:
 
 class CompositionCalculatorPort:
     """Porta para o composition-engine. O domínio não conhece o framework nem HTTP."""
+
     def calculate(
         self,
         *,
         source_file_uf: str,
+        methodology: str,
         type_system: str,
         monetary_base_date: str,
         composition_id: str,
@@ -24,7 +26,7 @@ class CompositionCalculatorPort:
         overrides: dict,
     ) -> CalculatedComposition:
         raise NotImplementedError
-
+    
 
 class CompositionProviderError(RuntimeError):
     """Erro abstrato de um fornecedor de cálculo de composição."""

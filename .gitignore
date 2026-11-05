@@ -12,6 +12,7 @@ __pycache__/
 # Environment variables / secrets
 .env
 .env.*
+debug/
 
 # IDEs / editors
 .vscode/
@@ -20,3 +21,5 @@ __pycache__/
 # OS files
 .DS_Store
 Thumbs.db
+
+db.sqlite3
