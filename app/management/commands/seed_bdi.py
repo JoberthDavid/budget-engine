@@ -26,54 +26,56 @@ class Command(BaseCommand):
                 "description": "LUCRO",
                 "percentage": "12.000000",
                 "variable": "12,00% do CD",
+                "base": BDIQuota.Base.CD,
             },
             {
                 "group": "DESPESAS INDIRETAS",
                 "description": "ADMINISTRAÇÃO CENTRAL",
                 "percentage": "9.000000",
                 "variable": "9,00% do CD",
+                "base": BDIQuota.Base.CD,
             },
             {
                 "group": "DESPESAS INDIRETAS",
                 "description": "DESPESAS FINANCEIRAS",
                 "percentage": "10.650000",
                 "variable": "SELIC anual",
+                "base": BDIQuota.Base.CD,
             },
             {
                 "group": "DESPESAS INDIRETAS",
                 "description": "RISCOS",
                 "percentage": "0.500000",
                 "variable": "0,50% do PV",
+                "base": BDIQuota.Base.PV,
             },
             {
                 "group": "DESPESAS INDIRETAS",
                 "description": "SEGUROS E GARANTIAS CONTRATUAIS",
                 "percentage": "0.250000",
                 "variable": "0,25% do PV",
+                "base": BDIQuota.Base.PV,
             },
             {
                 "group": "TRIBUTOS",
                 "description": "COFINS",
                 "percentage": "3.000000",
                 "variable": "3,00% do PV",
+                "base": BDIQuota.Base.PV,
             },
             {
                 "group": "TRIBUTOS",
                 "description": "ISS",
                 "percentage": "5.000000",
                 "variable": "5,00% do PV",
-            },
-            {
-                "group": "TRIBUTOS",
-                "description": "DEDUÇÃO DE MATERIAIS NO ISS",
-                "percentage": "40.000000",
-                "variable": "40,00% da base do ISS",
+                "base": BDIQuota.Base.PV,
             },
             {
                 "group": "TRIBUTOS",
                 "description": "PIS",
                 "percentage": "0.650000",
                 "variable": "0,65% do PV",
+                "base": BDIQuota.Base.PV,
             },
         ]
 
@@ -87,6 +89,7 @@ class Command(BaseCommand):
                     "group": quota_data["group"],
                     "percentage": quota_data["percentage"],
                     "variable": quota_data["variable"],
+                    "base": quota_data["base"],
                 },
             )
 

@@ -154,11 +154,21 @@ class BDI(models.Model):
         related_name="bdis",
     )
 
+    observation = models.TextField(
+        blank=True,
+        default="",
+    )
+
     def __str__(self) -> str:
         return self.name
 
 
 class BDIQuota(models.Model):
+
+    class Base(models.TextChoices):
+        CD = "CD", "Custo Direto"
+        PV = "PV", "Preço de Venda"
+
     bdi = models.ForeignKey(
         BDI,
         on_delete=models.CASCADE,
@@ -180,6 +190,11 @@ class BDIQuota(models.Model):
 
     variable = models.CharField(
         max_length=100,
+    )
+
+    base = models.CharField(
+        max_length=2,
+        choices=Base.choices,
     )
 
     def __str__(self) -> str:
