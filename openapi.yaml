@@ -98,7 +98,7 @@ components:
   schemas:
     BDI:
       type: object
-      required: [id, name, slug, method, quotas]
+      required: [id, name, slug, method, observation, quotas]
       properties:
         id:
           type: integer
@@ -108,6 +108,8 @@ components:
           type: string
         method:
           $ref: '#/components/schemas/BDIMethod'
+        observation:
+          type: string
         quotas:
           type: array
           items:
@@ -124,7 +126,7 @@ components:
 
     BDIQuota:
       type: object
-      required: [id, group, description, percentage, variable]
+      required: [id, group, description, percentage, variable, base]
       properties:
         id:
           type: integer
@@ -137,6 +139,9 @@ components:
           pattern: '^\d+\.\d{6}$'
         variable:
           type: string
+        base:
+          type: string
+          enum: [CD, PV]
 
     BudgetCalculationRequest:
       type: object

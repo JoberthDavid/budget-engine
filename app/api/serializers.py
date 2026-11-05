@@ -97,6 +97,7 @@ class BDIQuotaResponseSerializer(serializers.Serializer):
     description = serializers.CharField()
     percentage = serializers.DecimalField(max_digits=12, decimal_places=6)
     variable = serializers.CharField()
+    base = serializers.CharField()
 
 
 class BDIResponseSerializer(serializers.Serializer):
@@ -104,4 +105,5 @@ class BDIResponseSerializer(serializers.Serializer):
     name = serializers.CharField()
     slug = serializers.CharField()
     method = BDIMethodResponseSerializer()
+    observation = serializers.CharField()
     quotas = BDIQuotaResponseSerializer(many=True)

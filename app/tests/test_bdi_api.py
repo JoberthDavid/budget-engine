@@ -18,6 +18,7 @@ class BDIAPITestCase(TestCase):
             name="BDI Onerado",
             slug="bdi-onerado",
             method=self.method,
+            observation="BDI de teste.",
         )
 
         BDIQuota.objects.create(
@@ -26,6 +27,7 @@ class BDIAPITestCase(TestCase):
             description="ADMINISTRAÇÃO CENTRAL",
             percentage=Decimal("3.000000"),
             variable="AC",
+            base="CD",
         )
 
         BDIQuota.objects.create(
@@ -34,6 +36,7 @@ class BDIAPITestCase(TestCase):
             description="LUCRO",
             percentage=Decimal("8.000000"),
             variable="L",
+            base="CD",
         )
 
     def test_get_bdi_returns_bdi_with_quotas(self):
@@ -69,6 +72,14 @@ class BDIAPITestCase(TestCase):
         self.assertEqual(
             data["quotas"][0]["percentage"],
             "3.000000",
+        )
+        self.assertEqual(
+            data["observation"],
+            "BDI de teste.",
+        )
+        self.assertEqual(
+            data["quotas"][0]["base"],
+            "CD",
         )
 
     def test_get_nonexistent_bdi_returns_404(self):
