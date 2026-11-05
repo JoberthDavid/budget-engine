@@ -33,6 +33,34 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/BDI'
+  /bdi/{bdi_id}:
+  get:
+    summary: Retorna um BDI específico
+    operationId: getBdi
+    parameters:
+      - name: bdi_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    responses:
+      '200':
+        description: BDI encontrado
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BDI'
+      '404':
+        description: BDI não encontrado
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - detail
+              properties:
+                detail:
+                  type: string
   /budgets/calculate:
     post:
       summary: Calcula oficialmente um orçamento

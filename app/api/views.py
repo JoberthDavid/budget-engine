@@ -36,6 +36,32 @@ def list_bdis(request):
     return Response(BDIResponseSerializer(bdis, many=True).data)
 
 
+@api_view(["GET"])
+def get_bdi(request, bdi_id):
+    bdi = (
+        BDI.objects
+        .select_related("method")
+        .prefetch_related(
+            Prefetch(
+                "quotas",
+                queryset=BDIQuota.objects.order_by("id"),
+            )
+        )
+        .filter(id=bdi_id)
+        .first()
+    )
+
+    if bdi is None:
+        return Response(
+            {"detail": "BDI não encontrado."},
+            status=404,
+        )
+
+    return Response(
+        BDIResponseSerializer(bdi).data
+    )
+
+
 @api_view(["POST"])
 def calculate_budget(request):
     request_serializer = BudgetCalculationRequestSerializer(data=request.data)
