@@ -4,6 +4,10 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 
 from app.models import BDI, BDIQuota, BDIMethod
+from app.api.serializers import (
+    BDICreateSerializer,
+    BDIUpdateSerializer,
+)
 
 
 class BDIAPITestCase(TestCase):
@@ -102,3 +106,181 @@ class BDIAPITestCase(TestCase):
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]["id"], self.bdi.id)
         self.assertEqual(data[0]["name"], "BDI Onerado")
+
+    def test_create_serializer_accepts_bdi_aggregate(self):
+        serializer = BDICreateSerializer(
+            data={
+                "name": "BDI Teste",
+                "slug": "bdi-teste",
+                "method_id": self.method.id,
+                "observation": "Observação.",
+                "quotas": [
+                    {
+                        "group": "A",
+                        "description": "ADMINISTRAÇÃO CENTRAL",
+                        "percentage": "9.000000",
+                        "variable": "AC",
+                        "base": "CD",
+                    },
+                    {
+                        "group": "D",
+                        "description": "LUCRO",
+                        "percentage": "12.000000",
+                        "variable": "L",
+                        "base": "CD",
+                    },
+                ],
+            }
+        )
+
+        self.assertTrue(
+            serializer.is_valid(),
+            serializer.errors,
+        )
+
+    def test_update_serializer_allows_partial_bdi_update(self):
+        serializer = BDIUpdateSerializer(
+            data={
+                "name": "BDI Atualizado",
+            }
+        )
+
+        self.assertTrue(
+            serializer.is_valid(),
+            serializer.errors,
+        )
+
+    def test_update_serializer_accepts_quotas(self):
+        serializer = BDIUpdateSerializer(
+            data={
+                "quotas": [
+                    {
+                        "group": "A",
+                        "description": "ADMINISTRAÇÃO CENTRAL",
+                        "percentage": "9.000000",
+                        "variable": "AC",
+                        "base": "CD",
+                    },
+                ],
+            }
+        )
+
+        self.assertTrue(
+            serializer.is_valid(),
+            serializer.errors,
+        )
+
+    def test_create_bdi_creates_bdi_and_quotas(self):
+        response = self.client.post(
+            "/bdi",
+            data={
+                "name": "BDI Novo",
+                "slug": "bdi-novo",
+                "method_id": self.method.id,
+                "observation": "BDI criado pela API.",
+                "quotas": [
+                    {
+                        "group": "A",
+                        "description": "ADMINISTRAÇÃO CENTRAL",
+                        "percentage": "9.000000",
+                        "variable": "AC",
+                        "base": "CD",
+                    },
+                    {
+                        "group": "D",
+                        "description": "LUCRO",
+                        "percentage": "12.000000",
+                        "variable": "L",
+                        "base": "CD",
+                    },
+                ],
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 201)
+
+        bdi = BDI.objects.get(slug="bdi-novo")
+
+        self.assertEqual(bdi.name, "BDI Novo")
+        self.assertEqual(bdi.method_id, self.method.id)
+        self.assertEqual(
+            bdi.observation,
+            "BDI criado pela API.",
+        )
+
+        quotas = list(
+            BDIQuota.objects
+            .filter(bdi=bdi)
+            .order_by("id")
+        )
+
+        self.assertEqual(len(quotas), 2)
+        self.assertEqual(
+            quotas[0].description,
+            "ADMINISTRAÇÃO CENTRAL",
+        )
+        self.assertEqual(
+            quotas[0].base,
+            "CD",
+        )
+        self.assertEqual(
+            quotas[1].description,
+            "LUCRO",
+        )
+        self.assertEqual(
+            quotas[1].percentage,
+            Decimal("12.000000"),
+        )
+
+        data = response.json()
+
+        self.assertEqual(data["id"], bdi.id)
+        self.assertEqual(data["name"], "BDI Novo")
+        self.assertEqual(
+            len(data["quotas"]),
+            2,
+        )
+
+    def test_create_bdi_returns_400_for_invalid_method(self):
+        response = self.client.post(
+            "/bdi",
+            data={
+                "name": "BDI Inválido",
+                "slug": "bdi-invalido",
+                "method_id": 999999,
+                "observation": "",
+                "quotas": [],
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.json(),
+            {"detail": "Método de BDI não encontrado."},
+        )
+
+        self.assertFalse(
+            BDI.objects.filter(
+                slug="bdi-invalido"
+            ).exists()
+        )
+
+    def test_create_bdi_returns_error_for_duplicate_slug(self):
+        response = self.client.post(
+            "/bdi",
+            data={
+                "name": "Outro BDI",
+                "slug": self.bdi.slug,
+                "method_id": self.method.id,
+                "observation": "",
+                "quotas": [],
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.json()["details"]["slug"][0],
+            "Já existe um BDI com este slug.",
+        )

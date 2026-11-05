@@ -3,14 +3,17 @@ from functools import lru_cache
 from django.db.models import Prefetch
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from django.db import transaction
+from rest_framework import status
 
 from app.adapters.composition_engine import CompositionEngineAdapter
-from app.models import BDI, BDIQuota
+from app.models import BDI, BDIQuota, BDIMethod
 from app.api.mappers import map_budget_calculation_request
 from app.api.serializers import (
+    BDICreateSerializer,
+    BDIResponseSerializer,
     BudgetCalculationRequestSerializer,
     BudgetCalculationResponseSerializer,
-    BDIResponseSerializer,
 )
 from app.application.calculate_budget import CalculateBudget
 
@@ -25,15 +28,75 @@ def health(request):
     return Response({"status": "ok"})
 
 
-@api_view(["GET"])
+@api_view(["GET", "POST"])
 def list_bdis(request):
-    bdis = (
+    if request.method == "GET":
+        bdis = (
+            BDI.objects
+            .select_related("method")
+            .prefetch_related(
+                Prefetch(
+                    "quotas",
+                    queryset=BDIQuota.objects.order_by("id"),
+                )
+            )
+            .order_by("id")
+        )
+        return Response(
+            BDIResponseSerializer(bdis, many=True).data
+        )
+
+    serializer = BDICreateSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    data = serializer.validated_data
+
+    try:
+        method = BDIMethod.objects.get(id=data["method_id"])
+    except BDIMethod.DoesNotExist:
+        return Response(
+            {"detail": "Método de BDI não encontrado."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    with transaction.atomic():
+        bdi = BDI.objects.create(
+            name=data["name"],
+            slug=data["slug"],
+            method=method,
+            observation=data.get("observation", ""),
+        )
+
+        BDIQuota.objects.bulk_create(
+            [
+                BDIQuota(
+                    bdi=bdi,
+                    group=quota["group"],
+                    description=quota["description"],
+                    percentage=quota["percentage"],
+                    variable=quota["variable"],
+                    base=quota["base"],
+                )
+                for quota in data["quotas"]
+            ]
+        )
+
+    bdi = (
         BDI.objects
         .select_related("method")
-        .prefetch_related(Prefetch("quotas", queryset=BDIQuota.objects.order_by("id")))
-        .order_by("id")
+        .prefetch_related(
+            Prefetch(
+                "quotas",
+                queryset=BDIQuota.objects.order_by("id"),
+            )
+        )
+        .get(id=bdi.id)
     )
-    return Response(BDIResponseSerializer(bdis, many=True).data)
+
+    return Response(
+        BDIResponseSerializer(bdi).data,
+        status=status.HTTP_201_CREATED,
+    )
 
 
 @api_view(["GET"])

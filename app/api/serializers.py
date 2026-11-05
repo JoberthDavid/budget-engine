@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from app.models import BDI
 
 
 YEAR_MONTH_DAY_PATTERN = r"^\d{4}-(0[1-9]|1[0-2])-01$"
@@ -107,3 +108,59 @@ class BDIResponseSerializer(serializers.Serializer):
     method = BDIMethodResponseSerializer()
     observation = serializers.CharField()
     quotas = BDIQuotaResponseSerializer(many=True)
+
+
+class BDIQuotaInputSerializer(serializers.Serializer):
+    group = serializers.CharField()
+    description = serializers.CharField()
+    percentage = serializers.DecimalField(
+        max_digits=12,
+        decimal_places=6,
+    )
+    variable = serializers.CharField()
+    base = serializers.ChoiceField(
+        choices=("CD", "PV"),
+    )
+
+
+class BDICreateSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=150)
+    slug = serializers.SlugField(max_length=150)
+    method_id = serializers.IntegerField()
+    observation = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        default="",
+    )
+    quotas = BDIQuotaInputSerializer(
+        many=True,
+    )
+
+    def validate_slug(self, value):
+        if BDI.objects.filter(slug=value).exists():
+            raise serializers.ValidationError(
+                "Já existe um BDI com este slug."
+            )
+        return value
+
+
+class BDIUpdateSerializer(serializers.Serializer):
+    name = serializers.CharField(
+        max_length=150,
+        required=False,
+    )
+    slug = serializers.SlugField(
+        max_length=150,
+        required=False,
+    )
+    method_id = serializers.IntegerField(
+        required=False,
+    )
+    observation = serializers.CharField(
+        required=False,
+        allow_blank=True,
+    )
+    quotas = BDIQuotaInputSerializer(
+        many=True,
+        required=False,
+    )
