@@ -14,8 +14,15 @@ from app.api.serializers import (
     BDIResponseSerializer,
     BudgetCalculationRequestSerializer,
     BudgetCalculationResponseSerializer,
+    BDIUpdateSerializer,
+    BDIMethodResponseSerializer,
 )
 from app.application.calculate_budget import CalculateBudget
+
+from app.api.services.bdi_service import (
+    BDIService,
+    BDIInUseError,
+)
 
 
 @lru_cache(maxsize=1)
@@ -27,70 +34,35 @@ def get_calculate_budget() -> CalculateBudget:
 def health(request):
     return Response({"status": "ok"})
 
-
 @api_view(["GET", "POST"])
 def list_bdis(request):
+
     if request.method == "GET":
+
         bdis = (
             BDI.objects
             .select_related("method")
-            .prefetch_related(
-                Prefetch(
-                    "quotas",
-                    queryset=BDIQuota.objects.order_by("id"),
-                )
-            )
+            .prefetch_related("quotas")
             .order_by("id")
         )
+
         return Response(
-            BDIResponseSerializer(bdis, many=True).data
+            BDIResponseSerializer(
+                bdis,
+                many=True
+            ).data
         )
 
-    serializer = BDICreateSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
+    serializer = BDICreateSerializer(
+        data=request.data
+    )
 
-    data = serializer.validated_data
+    serializer.is_valid(
+        raise_exception=True
+    )
 
-    try:
-        method = BDIMethod.objects.get(id=data["method_id"])
-    except BDIMethod.DoesNotExist:
-        return Response(
-            {"detail": "Método de BDI não encontrado."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    with transaction.atomic():
-        bdi = BDI.objects.create(
-            name=data["name"],
-            slug=data["slug"],
-            method=method,
-            observation=data.get("observation", ""),
-        )
-
-        BDIQuota.objects.bulk_create(
-            [
-                BDIQuota(
-                    bdi=bdi,
-                    group=quota["group"],
-                    description=quota["description"],
-                    percentage=quota["percentage"],
-                    variable=quota["variable"],
-                    base=quota["base"],
-                )
-                for quota in data["quotas"]
-            ]
-        )
-
-    bdi = (
-        BDI.objects
-        .select_related("method")
-        .prefetch_related(
-            Prefetch(
-                "quotas",
-                queryset=BDIQuota.objects.order_by("id"),
-            )
-        )
-        .get(id=bdi.id)
+    bdi = BDIService.create(
+        serializer.validated_data
     )
 
     return Response(
@@ -99,29 +71,87 @@ def list_bdis(request):
     )
 
 
-@api_view(["GET"])
+@api_view(["GET", "PUT", "DELETE"])
 def get_bdi(request, bdi_id):
-    bdi = (
-        BDI.objects
-        .select_related("method")
-        .prefetch_related(
-            Prefetch(
-                "quotas",
-                queryset=BDIQuota.objects.order_by("id"),
-            )
-        )
-        .filter(id=bdi_id)
-        .first()
-    )
 
-    if bdi is None:
+    try:
+
+        bdi = BDI.objects.get(
+            pk=bdi_id
+        )
+
+    except BDI.DoesNotExist:
+
         return Response(
             {"detail": "BDI não encontrado."},
-            status=404,
+            status=status.HTTP_404_NOT_FOUND,
         )
 
+    if request.method == "GET":
+
+        bdi = BDIService._load(bdi.id)
+
+        return Response(
+            BDIResponseSerializer(bdi).data
+        )
+
+    if request.method == "PUT":
+
+        serializer = BDIUpdateSerializer(
+            data=request.data,
+            context={"instance": bdi},
+        )
+
+        serializer.is_valid(
+            raise_exception=True
+        )
+
+        bdi = BDIService.update(
+            bdi.id,
+            serializer.validated_data,
+        )
+
+        return Response(
+            BDIResponseSerializer(bdi).data
+        )
+
+    if request.method == "DELETE":
+
+        try:
+
+            BDIService.delete(
+                bdi.id
+            )
+
+        except BDIInUseError:
+
+            return Response(
+                {
+                    "code": "BDI_IN_USE",
+                    "message": (
+                        "Não é possível excluir este BDI "
+                        "porque ele está vinculado "
+                        "a um ou mais orçamentos."
+                    ),
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        return Response(
+            status=status.HTTP_204_NO_CONTENT
+        )
+
+
+@api_view(["GET"])
+def list_bdi_methods(request):
+
+    methods = BDIMethod.objects.order_by("id")
+
     return Response(
-        BDIResponseSerializer(bdi).data
+        BDIMethodResponseSerializer(
+            methods,
+            many=True
+        ).data
     )
 
 

@@ -138,27 +138,42 @@ class BDIAPITestCase(TestCase):
             serializer.errors,
         )
 
-    def test_update_serializer_allows_partial_bdi_update(self):
+    def test_update_serializer_requires_complete_bdi(self):
+
         serializer = BDIUpdateSerializer(
             data={
                 "name": "BDI Atualizado",
             }
         )
 
-        self.assertTrue(
-            serializer.is_valid(),
-            serializer.errors,
+        self.assertFalse(
+            serializer.is_valid()
         )
+
+        self.assertIn("slug", serializer.errors)
+        self.assertIn("method_id", serializer.errors)
+        self.assertIn("quotas", serializer.errors)
 
     def test_update_serializer_accepts_quotas(self):
         serializer = BDIUpdateSerializer(
             data={
+                "name": "BDI Atualizado",
+                "slug": "bdi-atualizado",
+                "method_id": self.method.id,
+                "observation": "Observação atualizada.",
                 "quotas": [
                     {
                         "group": "A",
                         "description": "ADMINISTRAÇÃO CENTRAL",
                         "percentage": "9.000000",
                         "variable": "AC",
+                        "base": "CD",
+                    },
+                    {
+                        "group": "D",
+                        "description": "LUCRO",
+                        "percentage": "12.000000",
+                        "variable": "L",
                         "base": "CD",
                     },
                 ],
@@ -257,8 +272,13 @@ class BDIAPITestCase(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
-            response.json(),
-            {"detail": "Método de BDI não encontrado."},
+            response.json()["code"],
+            "INVALID_REQUEST",
+        )
+
+        self.assertIn(
+            "method_id",
+            response.json()["details"],
         )
 
         self.assertFalse(
@@ -283,4 +303,99 @@ class BDIAPITestCase(TestCase):
         self.assertEqual(
             response.json()["details"]["slug"][0],
             "Já existe um BDI com este slug.",
+        )
+
+    def test_update_bdi_replaces_quotas(self):
+        response = self.client.put(
+            f"/bdi/{self.bdi.id}",
+            data={
+                "name": "BDI Atualizado",
+                "slug": "bdi-atualizado",
+                "method_id": self.method.id,
+                "observation": "Atualizado",
+                "quotas": [
+                    {
+                        "group": "A",
+                        "description": "ADMINISTRAÇÃO CENTRAL",
+                        "percentage": "5.000000",
+                        "variable": "AC",
+                        "base": "CD",
+                    }
+                ],
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        quotas = list(
+            BDIQuota.objects.filter(
+                bdi=self.bdi
+            )
+        )
+
+        self.assertEqual(len(quotas), 1)
+
+        self.assertEqual(
+            quotas[0].percentage,
+            Decimal("5.000000"),
+        )
+
+    def test_update_bdi_replaces_existing_quotas(self):
+
+        response = self.client.put(
+            f"/bdi/{self.bdi.id}",
+            data={
+                "name": "BDI Atualizado",
+                "slug": "bdi-atualizado",
+                "method_id": self.method.id,
+                "observation": "Atualizado pelo PUT.",
+                "quotas": [
+                    {
+                        "group": "A",
+                        "description": "ADMINISTRAÇÃO CENTRAL",
+                        "percentage": "5.000000",
+                        "variable": "AC",
+                        "base": "CD",
+                    }
+                ],
+            },
+            format="json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        self.bdi.refresh_from_db()
+
+        self.assertEqual(
+            self.bdi.name,
+            "BDI Atualizado",
+        )
+
+        self.assertEqual(
+            self.bdi.observation,
+            "Atualizado pelo PUT.",
+        )
+
+        quotas = list(
+            BDIQuota.objects
+            .filter(bdi=self.bdi)
+        )
+
+        self.assertEqual(
+            len(quotas),
+            1,
+        )
+
+        self.assertEqual(
+            quotas[0].percentage,
+            Decimal("5.000000"),
+        )
+
+        self.assertEqual(
+            response.json()["name"],
+            "BDI Atualizado",
         )
