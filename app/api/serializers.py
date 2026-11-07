@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.utils.text import slugify
 
-from app.models import BDI, BDIMethod
+from app.models import BDI, BDIMethod, PluviometricStation
 
 YEAR_MONTH_DAY_PATTERN = r"^\d{4}-(0[1-9]|1[0-2])-01$"
 
@@ -190,3 +190,21 @@ class BDICreateSerializer(BDIAggregateInputSerializer):
 
 class BDIUpdateSerializer(BDIAggregateInputSerializer):
     pass
+
+
+class PluviometricStationResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PluviometricStation
+        fields = (
+            "id",
+            "code",
+            "name",
+            "municipality",
+            "state",
+            "operator",
+            "latitude",
+            "longitude",
+            "nd",
+            "nere",
+            "norm_reference",
+        )

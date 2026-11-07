@@ -455,7 +455,7 @@ class PluviometricStation(models.Model):
         decimal_places=2,
         validators=[
             MinValueValidator(1),
-            MaxValueValidator(5),
+            MaxValueValidator(12),
         ],
     )
 
