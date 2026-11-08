@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework",
     "app.apps.BudgetApiConfig",
+    "occurrences.apps.OccurrencesConfig",
+    "quotations.apps.QuotationsConfig",
 ]
 
 MIDDLEWARE = [
