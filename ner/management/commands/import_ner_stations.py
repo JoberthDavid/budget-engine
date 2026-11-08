@@ -5,7 +5,7 @@ from decimal import Decimal, InvalidOperation
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
-from app.models import PluviometricStation
+from ner.models import PluviometricStation
 
 
 EXPECTED_STATIONS = 82

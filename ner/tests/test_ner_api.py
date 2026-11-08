@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.test import TestCase
 from rest_framework.test import APIClient
 
-from app.models import PluviometricStation
+from ner.models import PluviometricStation
 
 
 class NERStationAPITestCase(TestCase):

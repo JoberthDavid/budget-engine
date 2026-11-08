@@ -6,13 +6,16 @@ from django.db import IntegrityError
 from django.test import TestCase
 
 from app.models import (
-    BDI,
-    BDIMethod,
     Budget,
-    BudgetBDI,
     BudgetComposition,
     BudgetService,
     Project,
+)
+
+from bdi.models import (
+    BDI,
+    BDIMethod,
+    BudgetBDI,
 )
 
 

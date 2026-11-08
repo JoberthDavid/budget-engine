@@ -3,8 +3,8 @@ from decimal import Decimal
 from django.test import TestCase
 from rest_framework.test import APIClient
 
-from app.models import BDI, BDIQuota, BDIMethod
-from app.api.serializers import (
+from bdi.models import BDI, BDIQuota, BDIMethod
+from bdi.api.serializers import (
     BDICreateSerializer,
     BDIUpdateSerializer,
 )

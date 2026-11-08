@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from app.models import BDI, BDIQuota, BDIMethod
+from bdi.models import BDI, BDIQuota, BDIMethod
 
 
 class Command(BaseCommand):

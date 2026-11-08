@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     "app.apps.BudgetApiConfig",
     "occurrences.apps.OccurrencesConfig",
     "quotations.apps.QuotationsConfig",
+    "bdi.apps.BdiConfig",
+    "ner.apps.NerConfig",
 ]
 
 MIDDLEWARE = [

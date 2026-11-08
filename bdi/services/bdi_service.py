@@ -1,6 +1,6 @@
 from django.db import transaction
 
-from app.models import (
+from bdi.models import (
     BDI,
     BDIQuota,
     BDIMethod,
