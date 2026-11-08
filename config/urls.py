@@ -7,7 +7,10 @@ from bdi.api.views import (
     list_bdis,
     list_bdi_methods,
 )
-from ner.api.views import list_ner_stations
+from ner.api.views import (
+    create_ner_calculation,
+    list_ner_stations,
+)
 
 
 urlpatterns = [
@@ -18,4 +21,5 @@ urlpatterns = [
     path("bdi/<int:bdi_id>", get_bdi, name="get-bdi"),
     path("budgets/calculate", calculate_budget, name="calculate-budget"),
     path("ner/stations", list_ner_stations, name="list-ner-stations"),
+    path("ner/calculations", create_ner_calculation, name="create-ner-calculation"),
 ]

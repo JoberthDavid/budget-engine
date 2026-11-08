@@ -165,7 +165,7 @@ class MowingWorkloadCalculation(models.Model):
         decimal_places=6,
         validators=[
             MinValueValidator(1),
-            MaxValueValidator(5),
+            MaxValueValidator(12),
         ],
     )
 
@@ -173,7 +173,7 @@ class MowingWorkloadCalculation(models.Model):
     nerp = models.PositiveSmallIntegerField(
         validators=[
             MinValueValidator(1),
-            MaxValueValidator(5),
+            MaxValueValidator(12),
         ],
     )
 
