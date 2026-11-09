@@ -5,6 +5,19 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+from rest_framework.decorators import (
+    api_view,
+    authentication_classes,
+    permission_classes,
+)
+
+from security.authentication import ManifoldJWTAuthentication
+
+from ner.api.permissions import (
+    HasNERStationsReadScope,
+    HasNERCalculationsCreateScope,
+)
+
 from ner.api.serializers import (
     NERCalculationRequestSerializer,
     NERCalculationResponseSerializer,
@@ -24,6 +37,8 @@ from ner.models import (
 
 
 @api_view(["GET"])
+@authentication_classes([ManifoldJWTAuthentication])
+@permission_classes([HasNERStationsReadScope])
 def list_ner_stations(request):
     stations = PluviometricStation.objects.all()
 
@@ -63,6 +78,8 @@ def list_ner_stations(request):
 
 
 @api_view(["POST"])
+@authentication_classes([ManifoldJWTAuthentication])
+@permission_classes([HasNERCalculationsCreateScope])
 def create_ner_calculation(request):
     request_serializer = NERCalculationRequestSerializer(
         data=request.data,

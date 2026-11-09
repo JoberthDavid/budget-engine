@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from django.test import TestCase
 from rest_framework.test import APIClient
+from types import SimpleNamespace
 
 from ner.models import (
     MowingWorkloadCalculation,
@@ -15,6 +16,20 @@ class NERCalculationAPITestCase(TestCase):
 
     def setUp(self):
         self.client = APIClient()
+        self.client.force_authenticate(
+            user=SimpleNamespace(
+                is_authenticated=True,
+                is_anonymous=False,
+                username="user:test",
+            ),
+            token={
+                "sub": "user:test",
+                "scope": [
+                    "ner:stations:read",
+                    "ner:calculations:create",
+                ],
+            },
+        )
 
         self.stations = [
             PluviometricStation.objects.create(

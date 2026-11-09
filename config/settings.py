@@ -86,3 +86,14 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "app.api.exceptions.api_exception_handler",
     "COERCE_DECIMAL_TO_STRING": True,
 }
+
+# Manifold JWT authentication
+MANIFOLD_JWKS_URL = os.getenv("MANIFOLD_JWKS_URL", "")
+MANIFOLD_JWT_ISSUER = os.getenv(
+    "MANIFOLD_JWT_ISSUER",
+    "manifold-api",
+)
+MANIFOLD_JWT_AUDIENCE = os.getenv(
+    "MANIFOLD_JWT_AUDIENCE",
+    "budget-engine",
+)

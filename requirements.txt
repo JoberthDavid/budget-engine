@@ -4,3 +4,5 @@ django-cors-headers==4.9.0
 pydantic==2.14.2
 requests==2.34.2
 pytest==8.4.2
+PyJWT==2.10.1
+cryptography==50.0.2

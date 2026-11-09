@@ -4,12 +4,24 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 
 from ner.models import PluviometricStation
+from types import SimpleNamespace
 
 
 class NERStationAPITestCase(TestCase):
 
     def setUp(self):
         self.client = APIClient()
+        self.client.force_authenticate(
+            user=SimpleNamespace(
+                is_authenticated=True,
+                is_anonymous=False,
+                username="user:test",
+            ),
+            token={
+                "sub": "user:test",
+                "scope": ["ner:stations:read"],
+            },
+        )
 
         self.station_1 = PluviometricStation.objects.create(
             code="1547004",
