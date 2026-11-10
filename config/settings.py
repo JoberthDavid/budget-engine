@@ -1,8 +1,13 @@
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_dotenv(BASE_DIR / ".env")
+
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "development-only-secret-key")
 DEBUG = os.getenv("DJANGO_DEBUG", "false").lower() == "true"
 ALLOWED_HOSTS = [
@@ -97,3 +102,8 @@ MANIFOLD_JWT_AUDIENCE = os.getenv(
     "MANIFOLD_JWT_AUDIENCE",
     "budget-engine",
 )
+
+LANGUAGE_CODE = "pt-br"
+TIME_ZONE = "America/Sao_Paulo"
+USE_I18N = True
+USE_TZ = True
