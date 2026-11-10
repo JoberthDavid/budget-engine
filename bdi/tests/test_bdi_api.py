@@ -399,3 +399,26 @@ class BDIAPITestCase(TestCase):
             response.json()["name"],
             "BDI Atualizado",
         )
+
+    def test_list_bdi_methods_returns_methods_ordered_by_id(self):
+        second_method = BDIMethod.objects.create(
+            method="SINAPI",
+        )
+
+        response = self.client.get("/bdi/methods")
+
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(
+            response.json(),
+            [
+                {
+                    "id": self.method.id,
+                    "method": "SICRO",
+                },
+                {
+                    "id": second_method.id,
+                    "method": "SINAPI",
+                },
+            ],
+        )
