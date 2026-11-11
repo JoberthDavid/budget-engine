@@ -8,11 +8,18 @@ from bdi.api.serializers import (
     BDICreateSerializer,
     BDIUpdateSerializer,
 )
+from types import SimpleNamespace
 
 
 class BDIAPITestCase(TestCase):
     def setUp(self):
         self.client = APIClient()
+
+        self.user = SimpleNamespace(
+            is_authenticated=True,
+            is_anonymous=False,
+            username="user:test",
+        )
 
         self.method = BDIMethod.objects.create(
             method="SICRO",
@@ -43,7 +50,18 @@ class BDIAPITestCase(TestCase):
             base="CD",
         )
 
+    def authenticate_with_scope(self, *scopes):
+        self.client.force_authenticate(
+            user=self.user,
+            token={
+                "sub": "user:test",
+                "scope": list(scopes),
+            },
+        )
+
     def test_get_bdi_returns_bdi_with_quotas(self):
+        self.authenticate_with_scope("bdi:read")
+
         response = self.client.get(
             f"/bdi/{self.bdi.id}"
         )
@@ -87,6 +105,8 @@ class BDIAPITestCase(TestCase):
         )
 
     def test_get_nonexistent_bdi_returns_404(self):
+        self.authenticate_with_scope("bdi:read")
+
         response = self.client.get("/bdi/999999")
 
         self.assertEqual(response.status_code, 404)
@@ -97,6 +117,8 @@ class BDIAPITestCase(TestCase):
         )
 
     def test_list_bdis_returns_bdi(self):
+        self.authenticate_with_scope("bdi:read")
+
         response = self.client.get("/bdi")
 
         self.assertEqual(response.status_code, 200)
@@ -186,6 +208,8 @@ class BDIAPITestCase(TestCase):
         )
 
     def test_create_bdi_creates_bdi_and_quotas(self):
+        self.authenticate_with_scope("bdi:create")
+
         response = self.client.post(
             "/bdi",
             data={
@@ -258,6 +282,7 @@ class BDIAPITestCase(TestCase):
         )
 
     def test_create_bdi_returns_400_for_invalid_method(self):
+        self.authenticate_with_scope("bdi:create")
         response = self.client.post(
             "/bdi",
             data={
@@ -288,6 +313,7 @@ class BDIAPITestCase(TestCase):
         )
 
     def test_create_bdi_returns_error_for_duplicate_slug(self):
+        self.authenticate_with_scope("bdi:create")
         response = self.client.post(
             "/bdi",
             data={
@@ -306,6 +332,8 @@ class BDIAPITestCase(TestCase):
         )
 
     def test_update_bdi_replaces_quotas(self):
+        self.authenticate_with_scope("bdi:update")
+
         response = self.client.put(
             f"/bdi/{self.bdi.id}",
             data={
@@ -329,20 +357,17 @@ class BDIAPITestCase(TestCase):
         self.assertEqual(response.status_code, 200)
 
         quotas = list(
-            BDIQuota.objects.filter(
-                bdi=self.bdi
-            )
+            BDIQuota.objects.filter(bdi=self.bdi)
         )
 
         self.assertEqual(len(quotas), 1)
-
         self.assertEqual(
             quotas[0].percentage,
             Decimal("5.000000"),
         )
 
     def test_update_bdi_replaces_existing_quotas(self):
-
+        self.authenticate_with_scope("bdi:update")
         response = self.client.put(
             f"/bdi/{self.bdi.id}",
             data={
@@ -401,6 +426,8 @@ class BDIAPITestCase(TestCase):
         )
 
     def test_list_bdi_methods_returns_methods_ordered_by_id(self):
+        self.authenticate_with_scope("bdi:read")
+        
         second_method = BDIMethod.objects.create(
             method="SINAPI",
         )
@@ -422,3 +449,82 @@ class BDIAPITestCase(TestCase):
                 },
             ],
         )
+
+    def test_create_bdi_requires_create_scope(self):
+        self.authenticate_with_scope("bdi:read")
+
+        response = self.client.post(
+            "/bdi",
+            data={
+                "name": "BDI Teste",
+                "slug": "bdi-teste",
+                "method_id": self.method.id,
+                "observation": "",
+                "quotas": [],
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+
+    def test_update_bdi_requires_update_scope(self):
+        self.authenticate_with_scope("bdi:create")
+
+        response = self.client.put(
+            f"/bdi/{self.bdi.id}",
+            data={
+                "name": "BDI Atualizado",
+                "slug": "bdi-atualizado",
+                "method_id": self.method.id,
+                "observation": "",
+                "quotas": [],
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+
+    def test_delete_bdi_requires_delete_scope(self):
+        self.authenticate_with_scope("bdi:update")
+
+        response = self.client.delete(
+            f"/bdi/{self.bdi.id}"
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+
+    def test_list_bdi_requires_read_scope(self):
+        self.authenticate_with_scope("bdi:create")
+
+        response = self.client.get("/bdi")
+
+        self.assertEqual(response.status_code, 403)
+
+
+    def test_get_bdi_requires_read_scope(self):
+        self.authenticate_with_scope("bdi:create")
+
+        response = self.client.get(
+            f"/bdi/{self.bdi.id}"
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+
+    def test_list_bdi_methods_requires_read_scope(self):
+        self.authenticate_with_scope("bdi:create")
+
+        response = self.client.get("/bdi/methods")
+
+        self.assertEqual(response.status_code, 403)
+
+
+    def test_list_bdi_without_authentication_returns_401(self):
+        self.client.force_authenticate(user=None)
+
+        response = self.client.get("/bdi")
+
+        self.assertEqual(response.status_code, 401)

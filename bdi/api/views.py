@@ -13,9 +13,24 @@ from bdi.services.bdi_service import (
     BDIService,
     BDIInUseError,
 )
+from rest_framework.decorators import (
+    api_view,
+    authentication_classes,
+    permission_classes,
+)
+
+from security.authentication import ManifoldJWTAuthentication
+
+from bdi.api.permissions import (
+    HasBDIListScope,
+    HasBDIObjectScope,
+    HasBDIReadScope,
+)
 
 
 @api_view(["GET", "POST"])
+@authentication_classes([ManifoldJWTAuthentication])
+@permission_classes([HasBDIListScope])
 def list_bdis(request):
     if request.method == "GET":
         bdis = (
@@ -41,6 +56,8 @@ def list_bdis(request):
 
 
 @api_view(["GET", "PUT", "DELETE"])
+@authentication_classes([ManifoldJWTAuthentication])
+@permission_classes([HasBDIObjectScope])
 def get_bdi(request, bdi_id):
     try:
         bdi = BDI.objects.get(pk=bdi_id)
@@ -87,6 +104,8 @@ def get_bdi(request, bdi_id):
 
 
 @api_view(["GET"])
+@authentication_classes([ManifoldJWTAuthentication])
+@permission_classes([HasBDIReadScope])
 def list_bdi_methods(request):
     methods = BDIMethod.objects.order_by("id")
 

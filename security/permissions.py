@@ -5,7 +5,8 @@ class HasScope(BasePermission):
     """
     Permissão genérica baseada nos scopes presentes no JWT.
 
-    As classes específicas devem definir required_scope.
+    As classes específicas devem definir required_scope
+    ou implementar sua própria seleção de escopo.
     """
 
     required_scope = None
@@ -13,6 +14,12 @@ class HasScope(BasePermission):
     message = "O token não possui autorização para esta operação."
 
     def has_permission(self, request, view):
+        return self.has_required_scope(
+            request,
+            self.required_scope,
+        )
+
+    def has_required_scope(self, request, required_scope):
         if not request.user or not request.user.is_authenticated:
             return False
 
@@ -24,7 +31,7 @@ class HasScope(BasePermission):
         if not isinstance(scopes, list):
             return False
 
-        if not self.required_scope:
+        if not required_scope:
             return False
 
-        return self.required_scope in scopes
+        return required_scope in scopes
