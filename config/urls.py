@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
 
 from app.api.views import calculate_budget, health
 from bdi.api.views import (
@@ -22,4 +22,5 @@ urlpatterns = [
     path("budgets/calculate", calculate_budget, name="calculate-budget"),
     path("ner/stations", list_ner_stations, name="list-ner-stations"),
     path("ner/calculations", create_ner_calculation, name="create-ner-calculation"),
+    path("occurrences/", include("occurrences.api.urls")),
 ]
